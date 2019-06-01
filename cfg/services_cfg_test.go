@@ -28,7 +28,6 @@ var _ = Describe("Matcher Config", func() {
 var _ = Describe("Service Config", func() {
 	It("Parses a valid configuration", func() {
 		cfg := ServiceConfig{
-			Name:        "my-service",
 			UpstreamURI: "my-service.local",
 			Matchers: []MatcherConfig{
 				MatcherConfig{Host: "my-service.mydomain.com"},
@@ -39,10 +38,10 @@ var _ = Describe("Service Config", func() {
 			},
 		}
 
-		validatedCfg, err := cfg.Validate()
+		validatedCfg, err := cfg.Validate("my-service")
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(validatedCfg.Name).To(Equal("my-service"))
+		Expect(validatedCfg.Identifier).To(Equal("my-service"))
 		Expect(validatedCfg.Headers).To(Equal(cfg.Headers))
 
 		Expect(validatedCfg.UpstreamURI.String()).To(Equal(
@@ -56,17 +55,16 @@ var _ = Describe("Service Config", func() {
 
 	It("Parses a valid configuration even if matchers are omitted", func() {
 		cfg := ServiceConfig{
-			Name:        "my-service",
 			UpstreamURI: "my-service.local",
 			Headers: map[string]string{
 				"Authorization": "Basic my-basic-auth",
 			},
 		}
 
-		validatedCfg, err := cfg.Validate()
+		validatedCfg, err := cfg.Validate("my-service")
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(validatedCfg.Name).To(Equal("my-service"))
+		Expect(validatedCfg.Identifier).To(Equal("my-service"))
 		Expect(validatedCfg.Headers).To(Equal(cfg.Headers))
 
 		Expect(validatedCfg.UpstreamURI.String()).To(Equal(
@@ -78,7 +76,6 @@ var _ = Describe("Service Config", func() {
 
 	It("Parses a valid configuration even if headers are omitted", func() {
 		cfg := ServiceConfig{
-			Name:        "my-service",
 			UpstreamURI: "my-service.local",
 			Matchers: []MatcherConfig{
 				MatcherConfig{Host: "my-service.mydomain.com"},
@@ -86,10 +83,10 @@ var _ = Describe("Service Config", func() {
 			},
 		}
 
-		validatedCfg, err := cfg.Validate()
+		validatedCfg, err := cfg.Validate("my-service")
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(validatedCfg.Name).To(Equal("my-service"))
+		Expect(validatedCfg.Identifier).To(Equal("my-service"))
 
 		Expect(validatedCfg.UpstreamURI.String()).To(Equal(
 			"https://my-service.local",
@@ -112,17 +109,16 @@ var _ = Describe("Service Config", func() {
 			},
 		}
 
-		_, err := cfg.Validate()
+		_, err := cfg.Validate("")
 
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring(
-			"Service Name cannot be empty",
+			"Service Identifier cannot be empty",
 		)))
 	})
 
 	It("Does not validate a configuration with an invalid upstream uri", func() {
 		cfg := ServiceConfig{
-			Name:        "my-service",
 			UpstreamURI: "!",
 			Matchers: []MatcherConfig{
 				MatcherConfig{Host: "my-service.mydomain.com"},
@@ -133,7 +129,7 @@ var _ = Describe("Service Config", func() {
 			},
 		}
 
-		_, err := cfg.Validate()
+		_, err := cfg.Validate("my-service")
 
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring(
@@ -143,7 +139,6 @@ var _ = Describe("Service Config", func() {
 
 	It("Does not validate a configuration with an invalid matcher", func() {
 		cfg := ServiceConfig{
-			Name:        "my-service",
 			UpstreamURI: "my-service.local",
 			Matchers: []MatcherConfig{
 				MatcherConfig{Host: "my-service.mydomain.com"},
@@ -154,7 +149,7 @@ var _ = Describe("Service Config", func() {
 			},
 		}
 
-		_, err := cfg.Validate()
+		_, err := cfg.Validate("my-service")
 
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring(

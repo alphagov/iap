@@ -10,7 +10,7 @@ import (
 // Example configuration file
 // ---
 // services:
-//   - name: my-service
+//   my-service:
 //     upstream_uri: http://my-service.local
 //     matchers:
 //       - host: my-service.mydomain.com
@@ -18,7 +18,7 @@ import (
 //     headers:
 //       Authorization: Basic my-basic-auth-secret
 //
-//   - name: my-other-service
+//   my-other-service:
 //     upstream_uri: http://my-service.local
 //     matchers:
 //       - host: my-other-service.mydomain.com
@@ -36,7 +36,6 @@ type ValidatedMatcherConfig struct {
 
 // ServiceConfig represents an unvalidated Service configuration
 type ServiceConfig struct {
-	Name        string            `json:"name"`
 	UpstreamURI string            `json:"upstream_uri"`
 	Matchers    []MatcherConfig   `json:"matchers"`
 	Headers     map[string]string `json:"headers"`
@@ -57,18 +56,18 @@ func (c *MatcherConfig) Validate() (ValidatedMatcherConfig, error) {
 
 // ValidatedServiceConfig represents a validated Service configuration
 type ValidatedServiceConfig struct {
-	Name        string
+	Identifier  string
 	UpstreamURI url.URL
 	Matchers    []ValidatedMatcherConfig
 	Headers     map[string]string
 }
 
 // Validate does validation of ServiceConfig
-func (c *ServiceConfig) Validate() (ValidatedServiceConfig, error) {
+func (c *ServiceConfig) Validate(identifier string) (ValidatedServiceConfig, error) {
 	cfg := ValidatedServiceConfig{}
 
-	if c.Name == "" {
-		return cfg, fmt.Errorf("Service Name cannot be empty")
+	if identifier == "" {
+		return cfg, fmt.Errorf("Service Identifier cannot be empty")
 	}
 
 	upstreamURI, err := urlx.ParseWithDefaultScheme(c.UpstreamURI, "https")
@@ -89,7 +88,7 @@ func (c *ServiceConfig) Validate() (ValidatedServiceConfig, error) {
 	}
 
 	return ValidatedServiceConfig{
-		Name:        c.Name,
+		Identifier:  identifier,
 		UpstreamURI: *upstreamURI,
 		Matchers:    validatedMatchers,
 		Headers:     c.Headers,
