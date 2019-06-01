@@ -2,6 +2,8 @@ package cfg
 
 import (
 	"fmt"
+
+	"github.com/ghodss/yaml"
 )
 
 // Example configuration file ---
@@ -72,4 +74,22 @@ func (c *Config) Validate() (ValidatedConfig, error) {
 		Services:   validatedServices,
 		Users:      validatedUsers,
 	}, nil
+}
+
+// ParseAndValidateConfig parses and validates configuration from a string
+func ParseAndValidateConfig(config string) (ValidatedConfig, error) {
+	cfg := Config{}
+	err := yaml.Unmarshal([]byte(config), &cfg)
+
+	if err != nil {
+		return ValidatedConfig{}, fmt.Errorf("Could not unmarshal config: %s", err)
+	}
+
+	validatedCfg, err := cfg.Validate()
+
+	if err != nil {
+		return ValidatedConfig{}, fmt.Errorf("Could not validate config: %s", err)
+	}
+
+	return validatedCfg, nil
 }
