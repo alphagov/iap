@@ -5,6 +5,7 @@ import (
 
 	"github.com/ghodss/yaml"
 
+	"github.com/alphagov/iap/service"
 	"github.com/alphagov/iap/user"
 )
 
@@ -31,7 +32,7 @@ type Config struct {
 type ValidatedConfig struct {
 	OIDCConfig ValidatedOIDCConfig
 	Roles      []string
-	Services   map[string]ValidatedServiceConfig
+	Services   map[string]service.Service
 	Users      map[string]user.User
 }
 
@@ -44,7 +45,7 @@ func (c *Config) Validate() (ValidatedConfig, error) {
 		return cfg, err
 	}
 
-	validatedServices := make(map[string]ValidatedServiceConfig)
+	validatedServices := make(map[string]service.Service)
 	for serviceIdentifier, serviceConfig := range c.Services {
 		validatedServiceConfig, err := serviceConfig.Validate(serviceIdentifier)
 

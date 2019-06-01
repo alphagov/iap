@@ -2,9 +2,10 @@ package cfg
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/goware/urlx"
+
+	"github.com/alphagov/iap/service"
 )
 
 // Example configuration file
@@ -29,9 +30,17 @@ type MatcherConfig struct {
 	Host string
 }
 
-// ValidatedMatcherConfig represents a validated Matcher configuration
-type ValidatedMatcherConfig struct {
-	Host string
+// Validate does validation of MatcherConfig
+func (c *MatcherConfig) Validate() (service.Matcher, error) {
+	cfg := service.Matcher{}
+
+	if c.Host == "" {
+		return cfg, fmt.Errorf("Matcher Host cannot be empty")
+	}
+
+	return service.Matcher{
+		Host: c.Host,
+	}, nil
 }
 
 // ServiceConfig represents an unvalidated Service configuration
@@ -41,30 +50,9 @@ type ServiceConfig struct {
 	Headers     map[string]string `json:"headers"`
 }
 
-// Validate does validation of MatcherConfig
-func (c *MatcherConfig) Validate() (ValidatedMatcherConfig, error) {
-	cfg := ValidatedMatcherConfig{}
-
-	if c.Host == "" {
-		return cfg, fmt.Errorf("Matcher Host cannot be empty")
-	}
-
-	return ValidatedMatcherConfig{
-		Host: c.Host,
-	}, nil
-}
-
-// ValidatedServiceConfig represents a validated Service configuration
-type ValidatedServiceConfig struct {
-	Identifier  string
-	UpstreamURI url.URL
-	Matchers    []ValidatedMatcherConfig
-	Headers     map[string]string
-}
-
 // Validate does validation of ServiceConfig
-func (c *ServiceConfig) Validate(identifier string) (ValidatedServiceConfig, error) {
-	cfg := ValidatedServiceConfig{}
+func (c *ServiceConfig) Validate(identifier string) (service.Service, error) {
+	cfg := service.Service{}
 
 	if identifier == "" {
 		return cfg, fmt.Errorf("Service Identifier cannot be empty")
@@ -75,7 +63,7 @@ func (c *ServiceConfig) Validate(identifier string) (ValidatedServiceConfig, err
 		return cfg, fmt.Errorf("Service Upstream URI must be a valid URI")
 	}
 
-	validatedMatchers := make([]ValidatedMatcherConfig, 0)
+	validatedMatchers := make([]service.Matcher, 0)
 
 	for index, matcher := range c.Matchers {
 		validatedMatcher, err := matcher.Validate()
@@ -87,7 +75,7 @@ func (c *ServiceConfig) Validate(identifier string) (ValidatedServiceConfig, err
 		validatedMatchers = append(validatedMatchers, validatedMatcher)
 	}
 
-	return ValidatedServiceConfig{
+	return service.Service{
 		Identifier:  identifier,
 		UpstreamURI: *upstreamURI,
 		Matchers:    validatedMatchers,
