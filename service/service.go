@@ -17,3 +17,20 @@ type Service struct {
 	Roles       []string
 	UpstreamURI url.URL
 }
+
+// IsAccessible returns if service should be accessed by any one of the roles
+func (s *Service) IsAccessible(roles []string) bool {
+	if len(s.Roles) == 0 {
+		return true
+	}
+
+	for _, serviceRole := range s.Roles {
+		for _, role := range roles {
+			if serviceRole == role {
+				return true
+			}
+		}
+	}
+
+	return false
+}
