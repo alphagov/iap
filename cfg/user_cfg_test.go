@@ -8,11 +8,11 @@ import (
 var _ = Describe("User Config", func() {
 	It("Parses a valid configuration without defaults", func() {
 		cfg := UserConfig{Roles: []string{"role1", "role2"}}
-		validatedCfg, err := cfg.Validate("user@mydomain.com")
+		user, err := cfg.Validate("user@mydomain.com")
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(validatedCfg.Roles).To(Equal(cfg.Roles))
-		Expect(validatedCfg.Identifier).To(Equal("user@mydomain.com"))
+		Expect(user.Roles).To(Equal(cfg.Roles))
+		Expect(user.Identifier).To(Equal("user@mydomain.com"))
 	})
 
 	It("Does not validate a configuration without an identifier", func() {

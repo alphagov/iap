@@ -2,6 +2,8 @@ package cfg
 
 import (
 	"fmt"
+
+	"github.com/alphagov/iap/user"
 )
 
 // Example configuration file
@@ -21,15 +23,9 @@ type UserConfig struct {
 	Roles []string `json:"roles"`
 }
 
-// ValidatedUserConfig represents a validated User configuration
-type ValidatedUserConfig struct {
-	Identifier string
-	Roles      []string
-}
-
 // Validate does validation of UserConfig
-func (c *UserConfig) Validate(identifier string) (ValidatedUserConfig, error) {
-	cfg := ValidatedUserConfig{
+func (c *UserConfig) Validate(identifier string) (user.User, error) {
+	cfg := user.User{
 		Identifier: identifier,
 		Roles:      c.Roles,
 	}

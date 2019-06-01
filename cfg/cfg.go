@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/ghodss/yaml"
+
+	"github.com/alphagov/iap/user"
 )
 
 // Example configuration file ---
@@ -30,7 +32,7 @@ type ValidatedConfig struct {
 	OIDCConfig ValidatedOIDCConfig
 	Roles      []string
 	Services   map[string]ValidatedServiceConfig
-	Users      map[string]ValidatedUserConfig
+	Users      map[string]user.User
 }
 
 // Validate does validation of MatcherConfig
@@ -55,7 +57,7 @@ func (c *Config) Validate() (ValidatedConfig, error) {
 		validatedServices[serviceIdentifier] = validatedServiceConfig
 	}
 
-	validatedUsers := make(map[string]ValidatedUserConfig)
+	validatedUsers := make(map[string]user.User)
 	for userIdentifier, userConfig := range c.Users {
 		validatedUserConfig, err := userConfig.Validate(userIdentifier)
 
