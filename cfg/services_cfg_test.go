@@ -36,6 +36,7 @@ var _ = Describe("Service Config", func() {
 			Headers: map[string]string{
 				"Authorization": "Basic my-basic-auth",
 			},
+			Roles: []string{"superuser", "readonlyuser"},
 		}
 
 		validatedCfg, err := cfg.Validate("my-service")
@@ -43,6 +44,7 @@ var _ = Describe("Service Config", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(validatedCfg.Identifier).To(Equal("my-service"))
 		Expect(validatedCfg.Headers).To(Equal(cfg.Headers))
+		Expect(validatedCfg.Roles).To(Equal(cfg.Roles))
 
 		Expect(validatedCfg.UpstreamURI.String()).To(Equal(
 			"https://my-service.local",
@@ -59,6 +61,7 @@ var _ = Describe("Service Config", func() {
 			Headers: map[string]string{
 				"Authorization": "Basic my-basic-auth",
 			},
+			Roles: []string{"superuser", "readonlyuser"},
 		}
 
 		validatedCfg, err := cfg.Validate("my-service")
@@ -66,6 +69,7 @@ var _ = Describe("Service Config", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(validatedCfg.Identifier).To(Equal("my-service"))
 		Expect(validatedCfg.Headers).To(Equal(cfg.Headers))
+		Expect(validatedCfg.Roles).To(Equal(cfg.Roles))
 
 		Expect(validatedCfg.UpstreamURI.String()).To(Equal(
 			"https://my-service.local",
@@ -81,6 +85,34 @@ var _ = Describe("Service Config", func() {
 				MatcherConfig{Host: "my-service.mydomain.com"},
 				MatcherConfig{Host: "my-svc.mydomain.com"},
 			},
+			Roles: []string{"superuser", "readonlyuser"},
+		}
+
+		validatedCfg, err := cfg.Validate("my-service")
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(validatedCfg.Identifier).To(Equal("my-service"))
+		Expect(validatedCfg.Roles).To(Equal(cfg.Roles))
+
+		Expect(validatedCfg.UpstreamURI.String()).To(Equal(
+			"https://my-service.local",
+		))
+
+		Expect(validatedCfg.Matchers).To(HaveLen(2))
+		Expect(validatedCfg.Matchers[0].Host).To(Equal("my-service.mydomain.com"))
+		Expect(validatedCfg.Matchers[1].Host).To(Equal("my-svc.mydomain.com"))
+	})
+
+	It("Parses a valid configuration even if roles are omitted", func() {
+		cfg := ServiceConfig{
+			UpstreamURI: "my-service.local",
+			Matchers: []MatcherConfig{
+				MatcherConfig{Host: "my-service.mydomain.com"},
+				MatcherConfig{Host: "my-svc.mydomain.com"},
+			},
+			Headers: map[string]string{
+				"Authorization": "Basic my-basic-auth",
+			},
 		}
 
 		validatedCfg, err := cfg.Validate("my-service")
@@ -95,6 +127,7 @@ var _ = Describe("Service Config", func() {
 		Expect(validatedCfg.Matchers).To(HaveLen(2))
 		Expect(validatedCfg.Matchers[0].Host).To(Equal("my-service.mydomain.com"))
 		Expect(validatedCfg.Matchers[1].Host).To(Equal("my-svc.mydomain.com"))
+		Expect(validatedCfg.Headers).To(Equal(cfg.Headers))
 	})
 
 	It("Does not validate a configuration without a name", func() {

@@ -18,11 +18,14 @@ import (
 //       - host: my-svc.mydomain.com
 //     headers:
 //       Authorization: Basic my-basic-auth-secret
+//     roles:
+//       - superuser
 //
 //   my-other-service:
 //     upstream_uri: http://my-service.local
 //     matchers:
 //       - host: my-other-service.mydomain.com
+//     roles: [] # everyone can access
 //
 
 // MatcherConfig represents an unvalidated Matcher configuration
@@ -48,6 +51,7 @@ type ServiceConfig struct {
 	UpstreamURI string            `json:"upstream_uri"`
 	Matchers    []MatcherConfig   `json:"matchers"`
 	Headers     map[string]string `json:"headers"`
+	Roles       []string          `json:"roles"`
 }
 
 // Validate does validation of ServiceConfig
@@ -80,5 +84,6 @@ func (c *ServiceConfig) Validate(identifier string) (service.Service, error) {
 		UpstreamURI: *upstreamURI,
 		Matchers:    validatedMatchers,
 		Headers:     c.Headers,
+		Roles:       c.Roles,
 	}, nil
 }

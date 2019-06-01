@@ -11,8 +11,9 @@ type Matcher struct {
 
 // Service represents a validated Service
 type Service struct {
-	Identifier  string
-	UpstreamURI url.URL
-	Matchers    []Matcher
 	Headers     map[string]string
+	Identifier  string
+	Matchers    []Matcher
+	Roles       []string
+	UpstreamURI url.URL
 }

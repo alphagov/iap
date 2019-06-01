@@ -47,6 +47,7 @@ var _ = Describe("Config", func() {
 					Headers: map[string]string{
 						"Authorization": "Basic my-basic-auth-secret",
 					},
+					Roles: []string{"superuser", "readonlyuser"},
 				},
 				"my-other-service": ServiceConfig{
 					UpstreamURI: "http://my-other-service.local",
@@ -102,6 +103,9 @@ var _ = Describe("Config from String", func() {
           - host: my-svc.mydomain.com
         headers:
           Authorization: Basic my-basic-auth-secret
+        roles:
+          - superuser
+          - readonlyuser
       my-other-service:
         upstream_uri: http://my-service.local
         matchers:
