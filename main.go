@@ -27,6 +27,7 @@ func run(args []string, exit func(int)) {
 
 	cmd.ConfigureGlobals(app)
 	cmd.ConfigureWebCommand(app)
+	cmd.ConfigureProxyCommand(app)
 	cmd.ConfigureSocksCommand(app)
 
 	kingpin.MustParse(app.Parse(args))
