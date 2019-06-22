@@ -1,4 +1,4 @@
-package iap_test
+package main_test
 
 import (
 	"testing"
