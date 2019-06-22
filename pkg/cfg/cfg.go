@@ -5,8 +5,8 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	"github.com/alphagov/iap/service"
-	"github.com/alphagov/iap/user"
+	"github.com/alphagov/iap/pkg/service"
+	"github.com/alphagov/iap/pkg/user"
 )
 
 // Example configuration file ---

@@ -5,7 +5,7 @@ import (
 
 	"github.com/goware/urlx"
 
-	"github.com/alphagov/iap/service"
+	"github.com/alphagov/iap/pkg/service"
 )
 
 // Example configuration file

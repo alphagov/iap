@@ -3,7 +3,7 @@ package cfg
 import (
 	"fmt"
 
-	"github.com/alphagov/iap/user"
+	"github.com/alphagov/iap/pkg/user"
 )
 
 // Example configuration file
