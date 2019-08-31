@@ -1,8 +1,8 @@
 package auth
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -38,11 +38,16 @@ func New(store *redis.Client, logger *logrus.Logger) *Client {
 
 // Generate will setup a new username and password in the store and return the values.
 func (a Client) Generate() (string, string, error) {
-	username := randomString(16, upperCase, lowerCase, numbers)
-	password := randomString(32, upperCase, lowerCase, numbers, specials)
-
-	err := a.store.Set(fmt.Sprintf(UserSOCKS5Key, username), password, UserExpiration).Err()
+	username, err := randomString(16, upperCase, lowerCase, numbers)
 	if err != nil {
+		return "", "", err
+	}
+	password, err := randomString(32, upperCase, lowerCase, numbers, specials)
+	if err != nil {
+		return "", "", err
+	}
+
+	if err := a.store.Set(fmt.Sprintf(UserSOCKS5Key, username), password, UserExpiration).Err(); err != nil {
 		return "", "", err
 	}
 
@@ -62,12 +67,24 @@ func (a Client) Valid(user, password string) bool {
 	return password == pass
 }
 
-func randomString(length int, variety ...string) string {
-	letter := []rune(strings.Join(variety, ""))
-
-	b := make([]rune, length)
-	for i := range b {
-		b[i] = letter[rand.Intn(len(letter))]
+func randomString(length int, charSet ...string) (string, error) {
+	letters := strings.Join(charSet, "")
+	bytes, err := generateRandomBytes(length)
+	if err != nil {
+		return "", fmt.Errorf("unable to generate random string: %s", err)
 	}
-	return string(b)
+	for i, b := range bytes {
+		bytes[i] = letters[b%byte(len(letters))]
+	}
+	return string(bytes), nil
+}
+
+func generateRandomBytes(length int) ([]byte, error) {
+	b := make([]byte, length)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate random bytes: %s", err)
+	}
+
+	return b, nil
 }
