@@ -7,10 +7,13 @@ import (
 )
 
 // SetupLogger will configure the logger in consistent way across the application.
-func SetupLogger(debug bool) *log.Logger {
+func SetupLogger(json, debug bool) *log.Logger {
 	logger := log.New()
-	logger.SetFormatter(&log.JSONFormatter{})
+	logger.SetFormatter(&log.TextFormatter{FullTimestamp: true})
 	logger.SetOutput(os.Stdout)
+	if json {
+		logger.SetFormatter(&log.JSONFormatter{})
+	}
 	if debug {
 		logger.SetLevel(log.DebugLevel)
 	}

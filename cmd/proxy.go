@@ -39,7 +39,7 @@ func ConfigureProxyCommand(app *kingpin.Application) {
 
 	cmd.Action(func(c *kingpin.ParseContext) error {
 		ctx := internal.Context{
-			Logger: internal.SetupLogger(GlobalFlags.Debug),
+			Logger: internal.SetupLogger(GlobalFlags.StructuredLogging, GlobalFlags.Debug),
 			Redis:  internal.SetupRedis(GlobalFlags.RedisAddress),
 		}
 		return ProxyCommand(ctx, input)

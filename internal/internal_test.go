@@ -24,7 +24,7 @@ var _ = Describe("Internal packages", func() {
 			w = httptest.NewRecorder()
 			l = bytes.NewBuffer([]byte{})
 
-			logger := internal.SetupLogger(false)
+			logger := internal.SetupLogger(true, false)
 			logger.SetOutput(l)
 			ctx = internal.Context{
 				Logger: logger,
@@ -53,7 +53,7 @@ var _ = Describe("Internal packages", func() {
 		})
 
 		It("should setup logger correctly", func() {
-			l := internal.SetupLogger(false)
+			l := internal.SetupLogger(true, false)
 			l.SetOutput(b)
 			l.WithField("test", true).Infoln("info line")
 			l.WithField("test", true).Debugln("debug line")
@@ -64,7 +64,7 @@ var _ = Describe("Internal packages", func() {
 		})
 
 		It("should setup logger correctly with debug enabled", func() {
-			l := internal.SetupLogger(true)
+			l := internal.SetupLogger(true, true)
 			l.SetOutput(b)
 			l.WithField("test", true).Infoln("info line")
 			l.WithField("test", true).Debugln("debug line")
