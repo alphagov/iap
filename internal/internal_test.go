@@ -35,6 +35,7 @@ var _ = Describe("Internal packages", func() {
 			internal.JSONResponse(ctx, w, http.StatusOK, map[string]bool{"test": true})
 			Expect(w.Code).To(Equal(http.StatusOK))
 			Expect(l.String()).NotTo(ContainSubstring("failed to parse json blob"))
+			Expect(w.Header().Get("Content-Type")).To(Equal("application/json; charset=utf-8"))
 			Expect(w.Body.String()).To(MatchJSON(`{"test": true}`))
 		})
 

@@ -19,6 +19,7 @@ func JSONResponse(ctx Context, w http.ResponseWriter, code int, data interface{}
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 	w.Write(blob)
 	return
