@@ -24,6 +24,7 @@ func healthcheckHandler(ctx internal.Context) http.HandlerFunc {
 
 		_, err := ctx.Redis.Ping().Result()
 		if err != nil {
+			ctx.Logger.WithField("redis", GlobalFlags.RedisAddress).Warnln("unable to connect with redis")
 			status = http.StatusInternalServerError
 			healthyRedis = false
 		}
