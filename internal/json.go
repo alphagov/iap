@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// JSONResponse should take our data and other attributes and simply present end user with JSON.
 func JSONResponse(ctx Context, w http.ResponseWriter, code int, data interface{}) {
 	blob, err := json.Marshal(data)
 	if err != nil {

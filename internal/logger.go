@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SetupLogger will configure the logger in consistent way across the application.
 func SetupLogger(debug bool) *log.Logger {
 	logger := log.New()
 	logger.SetFormatter(&log.JSONFormatter{})
