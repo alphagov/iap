@@ -8,6 +8,8 @@ require (
 	github.com/alicebob/gopher-json v0.0.0-20180125190556-5a6b3ba71ee6 // indirect
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5
+	github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2
+	github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
@@ -17,5 +19,6 @@ require (
 	github.com/onsi/gomega v1.5.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/yuin/gopher-lua v0.0.0-20190514113301-1cd887cd7036 // indirect
+	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
