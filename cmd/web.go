@@ -10,9 +10,22 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
+const (
+	routeDefault        = "/"
+	routeHealthcheck    = "/healthcheck"
+	routeCredentials    = "/credentials"
+	routeGoogleLogin    = "/auth/google/login"
+	routeGoogleCallback = "/auth/google/callback"
+)
+
 // WebCommandInput is a configuration only to be used by this particular command.
 type WebCommandInput struct {
-	Port uint16
+	ExternalURL string
+	Insecure    bool
+	Port        uint16
+
+	GoogleClientID     string
+	GoogleClientSecret string
 }
 
 // ConfigureWebCommand should fill in the above input struct with some usable values.
@@ -26,6 +39,24 @@ func ConfigureWebCommand(app *kingpin.Application) {
 		Default("8080").
 		OverrideDefaultFromEnvar("PORT").
 		Uint16Var(&input.Port)
+
+	cmd.Flag("insecure", "Run the service without TLS.").
+		Short('k').
+		OverrideDefaultFromEnvar("INSECURE").
+		BoolVar(&input.Insecure)
+
+	cmd.Flag("external-url", "The external URL used for Oauth2 dance.").
+		Short('u').
+		OverrideDefaultFromEnvar("IAP_WEB_ADDRESS").
+		StringVar(&input.ExternalURL)
+
+	cmd.Flag("google-client-id", "The Google client ID used for Oauth2 dance.").
+		OverrideDefaultFromEnvar("GOOGLE_CLIENT_ID").
+		StringVar(&input.GoogleClientID)
+
+	cmd.Flag("google-client-secret", "The Google client secret used for Oauth2 dance.").
+		OverrideDefaultFromEnvar("GOOGLE_CLIENT_SECRET").
+		StringVar(&input.GoogleClientSecret)
 
 	cmd.Action(func(c *kingpin.ParseContext) error {
 		ctx := internal.Context{
@@ -42,8 +73,11 @@ func ConfigureWebCommand(app *kingpin.Application) {
 // for the IAP users.
 func WebCommand(ctx internal.Context, cfg WebCommandInput) error {
 	mux := http.DefaultServeMux
-	mux.HandleFunc("/healthcheck", healthcheckHandler(ctx))
-	mux.HandleFunc("/socks5/generate", generateSOCKS5Credentials(ctx))
+	mux.HandleFunc(routeHealthcheck, healthcheckHandler(ctx))
+	mux.HandleFunc(routeDefault, defaultHandler(ctx))
+	mux.HandleFunc(routeCredentials, authenticatedMiddleware(ctx, getCredentialsHanlder(ctx)))
+	mux.HandleFunc(routeGoogleLogin, googleLoginHanlder(ctx, cfg))
+	mux.HandleFunc(routeGoogleCallback, googleCallbackHanlder(ctx, cfg))
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
@@ -54,7 +88,10 @@ func WebCommand(ctx internal.Context, cfg WebCommandInput) error {
 	}
 
 	ctx.Logger.WithFields(logrus.Fields{
-		"port": cfg.Port,
+		"port":        cfg.Port,
+		"externalURL": cfg.ExternalURL,
+		"google":      len(cfg.GoogleClientID) > 0,
+		"insecure":    cfg.Insecure,
 	}).Info("starting web server")
 
 	return srv.ListenAndServe()

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/alicebob/miniredis"
 	"github.com/go-redis/redis"
+	httpmock "github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
@@ -38,15 +40,18 @@ var _ = Describe("Web server", func() {
 				DialTimeout:  time.Second * 1,
 			}),
 		}
+
+		httpmock.Activate()
 	})
 
 	AfterSuite(func() {
 		ctx.Redis.Close()
 		mr.Close()
+		httpmock.DeactivateAndReset()
 	})
 
 	It("should pass the healthcheck", func() {
-		req, err := http.NewRequest("GET", "/healthcheck", nil)
+		req, err := http.NewRequest("GET", routeHealthcheck, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		rr := httptest.NewRecorder()
@@ -59,7 +64,7 @@ var _ = Describe("Web server", func() {
 	})
 
 	It("should fail the healthcheck due to lack of redis conectivity", func() {
-		req, err := http.NewRequest("GET", "/healthcheck", nil)
+		req, err := http.NewRequest("GET", routeHealthcheck, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		rr := httptest.NewRecorder()
@@ -78,11 +83,13 @@ var _ = Describe("Web server", func() {
 	})
 
 	It("should generate a new set of credentials for user", func() {
-		req, err := http.NewRequest("GET", "/socks5/generate", nil)
-		Expect(err).NotTo(HaveOccurred())
+		httpmock.RegisterResponder("GET", fmt.Sprintf("%s%s", oauthGoogleURLAPI, "test"),
+			httpmock.NewStringResponder(200, `{"id":"1234567890qwertyuiop","email":"jeff@jefferson.com"}`))
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(generateSOCKS5Credentials(ctx))
+		handler := http.HandlerFunc(getCredentialsHanlder(ctx))
+		http.SetCookie(rr, &http.Cookie{Name: tokenCookieName, Value: "test", Path: "/"})
+		req := &http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}}
 
 		handler.ServeHTTP(rr, req)
 

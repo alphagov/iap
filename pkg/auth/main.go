@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	// UserSOCKS5Key defines the Redis key format that will be later formatted into username.
-	UserSOCKS5Key = "iap:auth:socks5:%s:password"
+	// UserTempUsername defines the Redis key format that will be later formatted into userUUID.
+	UserTempUsername = "iap:auth:socks5:%s:username"
+	// UserTempPassword defines the Redis key format that will be later formatted into userUUID.
+	UserTempPassword = "iap:auth:socks5:%s:password"
 	// UserExpiration is time duration before the username and password are expired in Redis.
 	UserExpiration = time.Hour * 8
 
@@ -37,18 +39,34 @@ func New(store *redis.Client, logger *logrus.Logger) *Client {
 }
 
 // Generate will setup a new username and password in the store and return the values.
-func (a Client) Generate() (string, string, error) {
-	username, err := randomString(16, upperCase, lowerCase, numbers)
-	if err != nil {
-		return "", "", err
-	}
-	password, err := randomString(32, upperCase, lowerCase, numbers, specials)
-	if err != nil {
+func (a Client) Generate(userUUID string) (string, string, error) {
+	username, err := a.store.Get(fmt.Sprintf(UserTempUsername, userUUID)).Result()
+	if err != nil && err != redis.Nil {
 		return "", "", err
 	}
 
-	if err := a.store.Set(fmt.Sprintf(UserSOCKS5Key, username), password, UserExpiration).Err(); err != nil {
+	password, err := a.store.Get(fmt.Sprintf(UserTempPassword, username)).Result()
+	if err != nil && err != redis.Nil {
 		return "", "", err
+	}
+
+	if err == redis.Nil {
+		username, err := randomString(16, upperCase, lowerCase, numbers)
+		if err != nil {
+			return "", "", err
+		}
+		password, err := randomString(32, upperCase, lowerCase, numbers, specials)
+		if err != nil {
+			return "", "", err
+		}
+
+		if err := a.store.Set(fmt.Sprintf(UserTempUsername, userUUID), username, UserExpiration).Err(); err != nil {
+			return "", "", err
+		}
+		if err := a.store.Set(fmt.Sprintf(UserTempPassword, username), password, UserExpiration).Err(); err != nil {
+			return "", "", err
+		}
+		return username, password, nil
 	}
 
 	return username, password, nil
@@ -58,13 +76,18 @@ func (a Client) Generate() (string, string, error) {
 func (a Client) Valid(user, password string) bool {
 	a.logger.WithField("user", user).Debugln("authenticating")
 
-	pass, err := a.store.Get(fmt.Sprintf(UserSOCKS5Key, user)).Result()
+	pass, err := a.store.Get(fmt.Sprintf(UserTempPassword, user)).Result()
 	if err != nil {
 		a.logger.WithField("user", user).Warningln("user not found")
 		return false
 	}
 
 	return password == pass
+}
+
+// Nonce will generate a random temporary string.
+func Nonce(length int) (string, error) {
+	return randomString(length, upperCase, lowerCase, numbers)
 }
 
 func randomString(length int, charSet ...string) (string, error) {
